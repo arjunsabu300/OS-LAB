@@ -152,6 +152,76 @@ void priority()
    display(prio);
 }
 
+void roundRobin(int quantum)
+{
+    int i, j, time = 0;
+    struct process rrobin[MAX_PROCESSES];
+    int remaining_burst[MAX_PROCESSES];
+
+    for (i = 0; i < n; i++)
+    {
+        rrobin[i] = p[i];
+        remaining_burst[i] = rrobin[i].bt;
+    }
+
+    while (1)
+    {
+        int done = 1;
+        for (i = 0; i < n; i++)
+        {
+            if (remaining_burst[i] > 0)
+            {
+                done = 0;
+                if (remaining_burst[i] > quantum)
+                {
+                    time += quantum;
+                    remaining_burst[i] -= quantum;
+                }
+                else
+                {
+                    time += remaining_burst[i];
+                    rrobin[i].rst = time - p[i].at - p[i].bt;
+                    remaining_burst[i] = 0;
+                }
+            }
+        }
+        if (done == 1)
+            break;
+    }
+
+    for (i = 0; i < n; i++)
+    {
+        rrobin[i].cplt = rrobin[i].bt + rrobin[i].rst;
+        rrobin[i].tat = rrobin[i].cplt - rrobin[i].at;
+        rrobin[i].wt = rrobin[i].tat - p[i].bt;
+    }
+
+    display(rrobin);
+}
+
+int main(void)
+{
+    int i, quantum;
+    printf("Enter how many processes: ");
+    scanf("%d", &n);
+    for (i = 0; i < n; i++)
+    {
+        printf("Enter the pid, arrival time, burst time, priority: ");
+        scanf("%d %d %d %d", &p[i].pid, &p[i].at, &p[i].bt, &p[i].priority);
+    }
+
+    printf("Enter the time quantum for Round Robin: ");
+    scanf("%d", &quantum);
+
+    FCFS();
+    SJF();
+    priority();
+    roundRobin(quantum);
+
+    return 0;
+}
+
+
 int main(void)
 {
    int i;
