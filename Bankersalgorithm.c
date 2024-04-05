@@ -1,58 +1,82 @@
 #include <stdio.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-int sem=1;
-int state=1;
 
-void sem_wait(int *sem)
+int main(void)
 {
-   while(*sem<=0)
+   int allocation[20][20],max[20][20],available[20],need[20][20],n,i,j,k,count=0,found=0,ex=0,it=0;
+   printf("Enter number of processes : ");
+   scanf("%d",&n);
+   int flag[n];
+   for(i=0;i<n;i++)
    {
-      *sem--;
+      printf("Enter Alloocation details A,B,C,D of P%d : ",i);
+      for(j=0;j<4;j++)
+      {
+         scanf("%d",&allocation[i][j]);
+      }
+      printf("Enter Max details A,B,C,D of P%d : ",i);
+      for(j=0;j<4;j++)
+      {
+         scanf("%d",&max[i][j]);
+      }
+      flag[i]=0;
    }
-}
-
-void signal(int *sem)
-{
-   sleep(1);
-   *sem++;
-}
-
-void* Printer(void * arg)
-{
-   int num=*((int*)arg);
-   int st=num;
-   while(1)
+   printf("Enter available resources amount A,B,C,D : ");
+   for(i=0;i<4;i++)
    {
-       sem_wait(&sem);
-       if(state==st)
-       {
-          if(num%2==0)
-          {
-             printf("Even : %d\n",num);
-             state=1;
-          }
-          else
-          {
-             printf("Odd : %d\n",num);
-             state=2;
-          }
-          num+=2;
-          //state=3-st;
-       }
-       signal(&sem);
+      scanf("%d",&available[i]);
    }
-   pthread_exit(NULL);
-}
+   for(i=0;i<n;i++)
+   {
+      for(j=0;j<4;j++)
+      {
+         need[i][j] = max[i][j]-allocation[i][j];
+      }
+   }
 
-void main()
-{
-   pthread_t oddT,evenT;
-   int odd=1,even=2;
-   pthread_create(&oddT,NULL,(void*)Printer,&odd);
-   pthread_create(&evenT,NULL,(void*)Printer,&even);
-   pthread_join(oddT,NULL);
-   pthread_join(evenT,NULL);
+   printf("SAFE SEQUENCE \n <");
+   while(count<n && it<n )
+   {
+      found=0;
+      //it=0;
+      for(i=0;i<n;i++)
+      {
+         if(flag[i]==0)
+         {
+            ex=1;
+            for(j=0;j<4;j++)
+            {
+               if(need[i][j]>available[j])
+               {
+                  ex=0;
+                  break;
+               }
+            }
+            if(ex)
+            {
+               for(j=0;j<4;j++)
+               {
+                  available[j]+=allocation[i][j];
+               }
+               printf(" P%d ",i);
+               flag[i]=1;
+               found=1;
+               count++;
+               it++;
+               //break;
+            }
+         }
+      }
+      if(!found)
+      {
+         it++;
+         break;
+      }
+   }
+   if(count<n)
+   {
+      printf("unsafe state\n");
+   }
+
+   printf(" >\n");
 }
